@@ -10,61 +10,19 @@ import random
 
 class TextWriter:    
     def __init__(self, canvas):
-        """ Construct text renderer.
-        @param canvas appuifw.Canvas instance 
-        @param fontName
-        @param fontFlags
-        @param initialFontSize
-        @param bounds
-        """
-        
-        # Used canvas
         self.canvas = canvas
-        #self.fontName = fontName
-        #self.fontFlags = fontFlags
-        #self.initialFontSize = initialFontSize
-        #self.bounds = bounds
         self.coords = [0,0]
         self.spacing = 5
         
-    def set_line_spacing(self, spacing):
-        """ Set Y pixels between text lines.
-        
-        """
-        self.spacing = spacing
-                
     def render_line(self, text, font, fill):
-        """ Render one line of text.
-        
-        Moves cursor below.
-        
-        @param line string
-        """
-            
         bounding, to_right, fits = self.canvas.measure_text(text, font=font)
-        
-        # canvas.text coordinates are the baseline position of the rendered
-        # text. It's not top left position.
-        #self.canvas.rectangle((self.coords[0],self.coords[1],240, self.coords[1] - (bounding[1] - bounding[3])),fill=(192,192,128))
         self.canvas.text([self.coords[0], self.coords[1] - bounding[1]], unicode(text), font=font, fill=fill)
-        
-        # Move cursor one line below
         self.coords = [self.coords[0], 
                        self.coords[1] - bounding[1] + bounding[3] + self.spacing                       
                        ]
 
     def chop(self, text, font, width):
-        """ Wrap text to lines. 
-        
-        @param text Row of text to wrap
-        @param width pixels we can use for one line
-        @param font appuifw font description
-                
-        TODO: Smarter breaker char logic.
-        """
-        
         lines = []
-        # Paragraph yet to be chopped
         text_left = text
         while len(text_left) > 0: 
             bounding, to_right, fits = self.canvas.measure_text(
@@ -74,14 +32,9 @@ class TextWriter:
                 lines.append(text_left)
                 break
             slice = text_left[0:fits]
-            #print slice
-        
-            # How many chars we can skip at the end of the row
-            # (whitespaces at the end of the row)
             adjust = 0
         
             if len(slice) < len(text_left):
-                # Use the last space as a break point
                 rindex = slice.rfind(" ")            
                 if rindex > 0:
                     adjust = 1
@@ -99,20 +52,6 @@ class TextWriter:
         return len(chopped_lines) * fontHeight
         
     def render(self, text, fontName, fontFlags, initialFontSize, bounds, fill=0x000000):
-        """ Render a piece of text.
-        
-        Primitive text wrap support.
-        
-        Strings are automatically converted to unicode.
-        
-        @param text: Multiline text
-        @param font: appuifw font description (optional)
-        @param fill: appuifw fill description (optional)
-        @param backgroundColour: background Colour fill (optional)
-        
-        @type text: unicode or str
-        @return None
-        """
         text = unicode(text)        
         totalHeightAvailable = bounds[3] - bounds[1]
         totalWidthAvailable = bounds[2] - bounds[0]
@@ -122,11 +61,6 @@ class TextWriter:
 	    currentFontSize -= 1
 	    font = (fontName, currentFontSize, fontFlags)
 	    totalHeightNeeded = self.GetNeededHeight(text, font, totalWidthAvailable)
-	    #print currentFontSize
- #
-        #print currentFontSize
-        #lines = text.split("\n")
-        #for line in lines:                        
         chopped_lines = self.chop(text, font, totalWidthAvailable)
         freeVSpace = totalHeightAvailable - totalHeightNeeded
         self.spacing = freeVSpace / (len(chopped_lines) + 1)
@@ -134,7 +68,6 @@ class TextWriter:
         
         for chopped_line in chopped_lines:
             self.render_line(chopped_line, font, fill)
-                #
                 
 class MediaFile:
     def __init__(self):
@@ -303,7 +236,6 @@ class Scheherazade:
                 self.set_exit()
                 return
         
-        #self.audioRecorder = audio.Sound.open('e:\AudioBooks\record2.amr')
         appuifw.app.menu = [(u'Select book', self.SelectBook)]
         
         self.LoadBook()
@@ -333,7 +265,6 @@ class Scheherazade:
         
         self.SetCurrentBookPart(bookPartIndex)
         self.currentPos = self.autoBookmark.Position
-        #self.DrawBookName()
     
     def GetCurrentMediaPosition(self):
         if self.audioPlayer.state() == audio.EPlaying:
@@ -473,7 +404,6 @@ class Scheherazade:
     def close_canvas(self): 
         appuifw.app.body=self.old_body
         self.canvas=None
-        #self.draw=None
         appuifw.app.exit_key_handler=None
 
     def redraw(self,rect):
@@ -481,7 +411,6 @@ class Scheherazade:
           self.canvas.clear(self.fieldcolor)
           self.DrawPosition()
           self.DrawVolume()
-          #self.DrawBookName()
           self.DrawBookPartName()
       
     def MilliSecondToString(self, microSeconds):
@@ -520,7 +449,6 @@ class Scheherazade:
 
     def DrawVolume(self):
       if not self.Loading:
-        #self.canvas.rectangle((0,35,self.screenWidth, 55),fill=(192,192,128))
         textrect=self.canvas.measure_text(u"V", font= self.font)[0]
         fontHeight = -(textrect[3] - textrect[1])
         
@@ -529,13 +457,10 @@ class Scheherazade:
         
         volumeText=u"%s%s"%(u"\u25A0"*self.settings.volume, u"\u25A1"*(10-self.settings.volume))
         self.canvas.text((82,55 - textrect[1]),volumeText,(96,96,64), ('title',None,FONT_BOLD|FONT_ANTIALIAS))
-        #self.DrawText(volumeText, 55)
 
     def DrawBookPartName(self): 
         if not self.Loading:
             bookPartNo = self.currentBook.bookParts.index(self.currentBook.currentBookPart)
-            #self.DrawText(u"  Part %dof%d (%s)"%(bookPartNo+1, len(self.currentBook.bookPartDisplays), self.currentBook.bookPartDisplays[bookPartNo]), 140)
-            #self.DrawBookName()
             writer = TextWriter(self.canvas)
             self.canvas.rectangle((5,85,235, 145),fill=(192,192,128))
             self.canvas.rectangle((5,85,235, 145),width = 1, outline=(96,96,64))
@@ -548,7 +473,6 @@ class Scheherazade:
                 self.canvas.rectangle((5,205,235, 230), fill = None, width = 3, outline=(96,96,64))
                 gPos = int((bookPartNo+1) * (self.screenWidth - 16) / len(self.currentBook.bookPartDisplays))
                 self.canvas.rectangle((5 + 3, 205 + 3, 5 + 3 + gPos, 230 - 3), fill = (96,96,64))
-            #pass  \nPart %dof%d (%s)  (, bookPartNo+1, len(self.currentBook.bookPartDisplays), self.currentBook.bookPartDisplays[bookPartNo])
         
     def set_exit(self):
         self.audioPlayer.stop()
@@ -570,7 +494,6 @@ class Scheherazade:
                 self.SaveAutoBookmark()
         self.close_canvas()
         
-#appuifw.app.screen='large'
 cheherazade=Scheherazade()
 cheherazade.run()
 exit()
