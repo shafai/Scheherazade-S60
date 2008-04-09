@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="192.29868"
+   id="svg951"
+   inkscape:version="0.46"
+   sodipodi:docbase="D:\My Pictures\SVG"
+   sodipodi:docname="book1.svg"
+   sodipodi:version="0.32"
+   width="364.62225"
+   version="1.0"
+   inkscape:output_extension="org.inkscape.output.svg.inkscape">
+  <metadata
+     id="metadata3752">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Open Book</dc:title>
+        <dc:description />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>hash</rdf:li>
+            <rdf:li />
+            <rdf:li>education</rdf:li>
+            <rdf:li>book</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://www.openclipart.org">
+            <dc:title>Nathan Eady</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Nathan Eady</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Nathan Eady</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date />
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain" />
+        <dc:language>en</dc:language>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs953">
+    <inkscape:perspective
+       sodipodi:type="inkscape:persp3d"
+       inkscape:vp_x="0 : 96.149338 : 1"
+       inkscape:vp_y="0 : 1000 : 0"
+       inkscape:vp_z="364.62225 : 96.149338 : 1"
+       inkscape:persp3d-origin="182.31113 : 64.099559 : 1"
+       id="perspective2445" />
+  </defs>
+  <sodipodi:namedview
+     bordercolor="#666666"
+     borderopacity="1.0"
+     id="base"
+     inkscape:cx="286.67579"
+     inkscape:cy="104.375"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:window-height="977"
+     inkscape:window-width="1280"
+     inkscape:window-x="44"
+     inkscape:window-y="44"
+     inkscape:zoom="1"
+     pagecolor="#ffffff"
+     inkscape:current-layer="svg951"
+     showgrid="false" />
+  <g
+     id="g2198"
+     transform="matrix(0.1333497,0,0,0.2199634,-34.959049,-52.747429)">
+    <path
+       d="M 264.66115,311.01114 C 289.60037,352.91582 311.99478,387.695 336.934,429.59969 C 388.16969,404.99978 409.88547,396.68669 454.50463,381.24813 C 474.01491,386.84673 494.54311,376.66746 502.85619,369.03299 C 539.67123,363.94335 582.59383,357.83579 623.98955,353.76408 C 622.97162,347.14755 625.00748,344.60274 623.98955,337.98621 C 581.06694,306.60011 537.63538,273.68712 494.71277,242.30102 C 416.33235,264.52577 343.04157,288.78638 264.66115,311.01114 z"
+       id="path14684"
+       sodipodi:nodetypes="cccccccc"
+       style="fill:#001873;fill-opacity:1;fill-rule:evenodd;stroke:#fefefe;stroke-width:5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1" />
+    <path
+       d="M 274.33146,312.53802 C 296.72587,348.16548 318.9635,383.4794 341.35791,419.10686 C 381.05708,398.23935 428.33666,367.46993 465.20346,375.77302 C 463.41399,363.50114 469.18224,356.62763 476.39007,348.67445 C 416.502,338.32552 386.6428,372.7654 344.0595,389.39155 C 343.21123,398.04393 342.51972,407.00987 341.67145,415.66225 C 341.13453,419.26389 343.02868,399.0361 344.21626,390.72303 C 324.87564,360.69417 302.12906,323.03084 282.78844,293.00198 C 277.1383,295.74221 276.14614,304.15835 274.33146,312.53802 z"
+       id="path14685"
+       sodipodi:nodetypes="ccccccccc"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#001873;stroke-width:3.75;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1" />
+    <path
+       d="M 475.80819,351.75813 C 477.96078,347.65267 480.23657,345.21808 482.81466,342.59041 C 499.81832,325.25984 504.81792,326.17953 532.88505,322.20833 C 558.18346,318.62887 575.92056,319.47328 601.70806,318.28569 C 599.50255,325.7505 603.29171,335.61104 606.6848,345.62066 C 582.42419,346.63859 562.62613,346.67943 535.82071,350.24217 C 518.00697,351.22364 500.66136,360.06926 488.9552,371.77542 C 489.97313,350.05964 484.96953,353.11537 475.80819,351.75813 z"
+       id="path14686"
+       sodipodi:nodetypes="cssccccc"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#001873;stroke-width:3.75;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1" />
+    <path
+       d="M 396.48276,273.85678 C 421.93095,298.45669 447.37914,323.05661 472.82733,347.65652 C 411.15789,340.02206 378.24489,377.43089 343.55053,389.64603 C 323.53129,357.92062 302.08287,324.62968 282.06363,292.90427 C 283.43691,291.46796 285.39877,290.78031 287.17397,289.90816 C 310.08568,278.65173 326.35424,260.34327 360.34634,257.56994 C 374.47078,256.41756 385.45522,265.88301 396.48276,273.85678 z"
+       id="path14687"
+       sodipodi:nodetypes="ccccssc"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#001873;stroke-width:2.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1" />
+    <path
+       d="M 476.49663,348.91674 C 495.45093,316.88638 533.7753,320.46756 600.5952,315.42908 C 565.32581,291.4363 530.84028,268.54092 495.57089,244.54814 C 449.38479,253.54544 418.31414,234.47117 393.36165,270.10046 L 476.49663,348.91674 z"
+       id="path950"
+       sodipodi:nodetypes="ccccc"
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#001873;stroke-width:2.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1" />
+  </g>
+</svg>
