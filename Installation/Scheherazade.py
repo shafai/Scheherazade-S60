@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import audio
 import appuifw
@@ -73,67 +74,84 @@ class MediaFile:
     def __init__(self):
         self.PlayableFileTypes = [".wav", ".mp3", ".m4b", ".m4a", ".wma", ".amr", ".acc", ".awb", ".flac"]
     def IsPlayable(self, filename):
-        for extention in self.PlayableFileTypes:
-	    if filename.endswith(extention):
-	        return True
-	return False
- 
- 
+        return os.path.splitext(filename)[1].lower() in self.PlayableFileTypes
 
 class Library:
     def __init__(self, path):
         self.books = []
         self.libPath = path
-    def LoadLibrary(self):
-        mediaFile = MediaFile()
-        for name in os.listdir(self.libPath):
-            if os.path.isfile(os.path.join(self.libPath, name)) and mediaFile.IsPlayable(name):
-                self.AddSingleFileBook(name)
-            if os.path.isdir(os.path.join(self.libPath, name)):
-	        self.AddDirBook(name)
     
-    def AddSingleFileBook(self, fileName):
-        book = Book(self.libPath, fileName)
-        book.AddBookPart(os.path.join(self.libPath, fileName), fileName)
-        self.books.append(book)
-
-    def ScanDirForBookparts(self, mediaFile, bookPath, book):
-        for bookPartName in os.listdir(bookPath):
-            fullPathToCheck = os.path.join(bookPath, bookPartName)
-            if os.path.isfile(fullPathToCheck) and mediaFile.IsPlayable(bookPartName):
-                book.AddBookPart(fullPathToCheck, bookPartName)
-            if os.path.isdir(fullPathToCheck):
-	        self.ScanDirForBookparts(mediaFile, fullPathToCheck, book)
- 
-       
-    def AddDirBook(self, dirName):
-        mediaFile = MediaFile()
-        bookPath = os.path.join(self.libPath, dirName)
-        book = Book(bookPath, dirName)
-        self.ScanDirForBookparts(mediaFile, bookPath, book)
-        if len(book.bookParts) > 0:
-	    self.books.append(book)        
-
+    def LoadLibrary(self):
+        self.mediaFile = MediaFile()
+        for name in os.listdir(self.libPath):
+            path = os.path.join(self.libPath, name)
+            if os.path.isdir(path) :
+                self.books.append(Book(path, name, False))
+            else:
+                if self.mediaFile.IsPlayable(path):
+                    self.books.append(Book(self.libPath, name, True))
+                    pass
+                
+                
     def GetBookByName(self, bookName):
         for book in self.books:
 	    if book.bookName == bookName:
 	        return book
-	return None
+	return self.books[0]      
 
 class Book:
-    def __init__(self, bookPath, bookName):
+    def __init__(self, bookPath, bookName, isSingelFile):
         self.bookParts = []
-        self.bookPartDisplays = []
+        self.mediaFile = MediaFile()
+        self.isSingleFile = isSingelFile
         self.bookName = bookName
         self.bookPath = bookPath
         self.currentBookPart = ""
+        self.currentBookPartIndex = 0
         
     def AddBookPart(self, bookPartFileName, bookPartDisplay):
-         self.bookParts.append(bookPartFileName)
-         self.bookPartDisplays.append(bookPartDisplay)
-         if self.currentBookPart == "":
-	    self.currentBookPart = bookPartFileName
+        hash = self.replaceNumbersRegex.sub(self.ReplaceNumbers, bookPartFileName)
+        self.bookParts.append((bookPartFileName, bookPartDisplay, hash))
+        
+    def ReplaceNumbers(self, match ):
+       value = int( match.group() )
+       return "%06d"%value
+       
+    def Load(self):
+        self.replaceNumbersRegex = re.compile(r'\d+')
+        if self.isSingleFile:
+            self.AddSingleFileBook(self.bookName)
+        else:
+            self.AddDirBook(self.bookName)
+            
+    def AddSingleFileBook(self, fileName):
+        self.AddBookPart(os.path.join(self.bookPath, fileName), fileName)
+
+    def ScanDirForBookparts(self, bookPath):
+        for bookPartName in os.listdir(bookPath):
+            fullPathToCheck = os.path.join(bookPath, bookPartName)
+            if os.path.isfile(fullPathToCheck) and self.mediaFile.IsPlayable(fullPathToCheck):
+                self.AddBookPart(fullPathToCheck, bookPartName)
+            if os.path.isdir(fullPathToCheck):
+	        self.ScanDirForBookparts(fullPathToCheck)
+ 
+       
+    def AddDirBook(self, dirName):
+        self.ScanDirForBookparts(self.bookPath)
+        self.bookParts.sort(self.CompareBookParts)
 	    
+    def CompareBookParts(self, x, y):
+      xName, xDisplay,xHash = x
+      yName, yDisplay,yHash = y
+      
+      if xHash == yHash :
+        return 0
+      if xHash < yHash:
+        return -1
+      return 1
+ 
+ 
+
 class IniReader:
     def __init__(self, fileContent):
         self.lines = fileContent.splitlines()
@@ -151,24 +169,27 @@ class Settings:
     def __init__(self):
         settingsPath = "c:\\data\\Scheherazade"
         if not os.path.exists(settingsPath):
-	    os.makedirs(settingsPath)
+          os.makedirs(settingsPath)
         
         self.setingFileName = settingsPath + "\\Scheherazade.settings"
-        self.libPath = "e:\\AudioBooks"
         self.currentBook = ""
-        self.rewindSeconds = 20
-        self.rewindOnPauseSeconds = 5
         self.autoBookmarkSaveInterval = 30
         self.volume = 5
+
+        self.rewindSeconds = 20
+        self.rewindOnPauseSeconds = 5
+        self.longRewindSeconds = 60
+        self.libPath = "E:\\AudioBooks"
     
     def Save(self):
         f = open(self.setingFileName, 'wt')
-        f.write("LibPath=%s\n"%self.libPath)
-        f.write("RewindSeconds=%d\n"%self.rewindSeconds)
-        f.write("RewindOnPauseSeconds=%d\n"%self.rewindOnPauseSeconds)
         f.write("AutoBookmarkSaveInterval=%d\n"%self.autoBookmarkSaveInterval)
         f.write("CurrentBook=%s\n"%self.currentBook)
         f.write("Volume=%s\n"%self.volume)
+        f.write("LibPath=%s\n"%self.libPath)
+        f.write("RewindSeconds=%d\n"%self.rewindSeconds)
+        f.write("RewindOnPauseSeconds=%d\n"%self.rewindOnPauseSeconds)
+        f.write("LongRewindSeconds=%d\n"%self.longRewindSeconds)
         f.close()
 
     def Load(self):
@@ -177,15 +198,73 @@ class Settings:
             iniReader = IniReader(f.read())
             f.close()
             
-            self.libPath = iniReader.ReadSetting("LibPath", self.libPath)
-            self.rewindSeconds = int(iniReader.ReadSetting("RewindSeconds", self.rewindSeconds))
-            self.rewindOnPauseSeconds = int(iniReader.ReadSetting("RewindOnPauseSeconds", self.rewindOnPauseSeconds))
             self.autoBookmarkSaveInterval = int(iniReader.ReadSetting("AutoBookmarkSaveInterval", self.autoBookmarkSaveInterval))
             self.currentBook = iniReader.ReadSetting("CurrentBook", self.currentBook)
             self.volume = int(iniReader.ReadSetting("Volume", self.volume))
+
+            self.libPath = iniReader.ReadSetting("LibPath", self.libPath)
+            self.rewindSeconds = int(iniReader.ReadSetting("RewindSeconds", self.rewindSeconds))
+            self.rewindOnPauseSeconds = int(iniReader.ReadSetting("RewindOnPauseSeconds", self.rewindOnPauseSeconds))
+            self.longRewindSeconds = int(iniReader.ReadSetting("LongRewindSeconds", self.longRewindSeconds))
+
             if not os.path.exists(os.path.join(self.libPath, self.currentBook)):
                 self.currentBook = ""
-        
+    
+    def ShowOptionsForm(self):
+      appuifw.app.title = u'Settings'
+      myForm = SettinsEditForm(self)
+      myForm.Show( )
+      appuifw.app.title = u'Scheherazade'
+      if myForm.isSaved:
+        needRestart = False
+        if self.libPath != myForm.GetlibLocation():
+	      needRestart = True
+        self.libPath = myForm.GetlibLocation()
+        self.rewindSeconds = myForm.GetRewindSeconds()
+        self.rewindOnPauseSeconds = myForm.GetRewindOnPauseSeconds()
+        self.longRewindSeconds = myForm.GetLongRewindSeconds()
+        #self.autoBookmarkSaveInterval = 30
+        self.Save()
+        if needRestart:
+	      appuifw.note(u"Changes will take effect next time you run Scheherazade.")
+
+ 
+class SettinsEditForm(object):
+    
+    def __init__( self, settings ):
+        self.libLocationDisplays = [u'Phone Memory', u'Memory Card']
+        self.libLocations = ["C:\\Data\\AudioBooks", "E:\\AudioBooks"]
+        self.fields = [
+                         ( u'Location for Audiobooks', 'combo', ( self.libLocationDisplays, self.libLocations.index(settings.libPath) ) ),
+                         ( u'Short rewind (Left, Right)','number', settings.rewindSeconds ),
+                         ( u'Long rewind (4,6)','number', settings.longRewindSeconds ),
+                         ( u'Rewind on pause','number', settings.rewindOnPauseSeconds )
+                      ]
+ 
+    def Show( self ):
+        self.isSaved = False
+        self.form = appuifw.Form(self.fields, appuifw.FFormEditModeOnly | appuifw.FFormDoubleSpaced)
+        self.form.save_hook = self.SavedCallBack
+        #self.form.flags = appuifw.FFormEditModeOnly
+        self.form.execute( )
+ 
+ 
+    def SavedCallBack( self, aBool ):
+        self.isSaved = aBool
+                  
+    def GetlibLocation( self ):
+        return self.libLocations[self.form[0][2][1]]
+  
+    def GetRewindSeconds( self ):
+        return self.form[1][2]
+ 
+    def GetLongRewindSeconds( self ):
+        return self.form[2][2]
+
+    def GetRewindOnPauseSeconds( self ):
+        return self.form[3][2]
+
+                 
 class Bookmark:
     def __init__(self):
         self.BookPartName = ""
@@ -227,8 +306,15 @@ class Scheherazade:
         appuifw.app.body=self.canvas
         self.canvas.clear(self.fieldcolor)
         self.settings.Load()
+        if not os.path.exists(self.settings.libPath):
+          os.makedirs(self.settings.libPath)
         self.library = Library(self.settings.libPath)
         self.library.LoadLibrary()
+        if len(self.library.books) == 0:
+            appuifw.note(u"No books found, please copy at least one book to your AudioBooks folder.")
+            self.set_exit()
+            return
+ 
         if self.settings.currentBook == "":
             appuifw.note(u"Please Choose a book to listen to.")
             self.SelectBook()
@@ -236,13 +322,18 @@ class Scheherazade:
                 self.set_exit()
                 return
         
-        appuifw.app.menu = [(u'Select book', self.SelectBook)]
+        appuifw.app.menu = [
+                            (u'Select book', self.SelectBook), 
+                            (u'Settings', self.settings.ShowOptionsForm),
+#                            (u'-', None),
+                            (u'About', self.About)
+                            ]
         
         self.LoadBook()
         self.lastSavedbookmark = time.time()
         
-        self.canvas.bind(EKey6,lambda:self.Forward(60))
-        self.canvas.bind(EKey4,lambda:self.Rewind(60))
+        self.canvas.bind(EKey6,lambda:self.Forward(self.settings.longRewindSeconds))
+        self.canvas.bind(EKey4,lambda:self.Rewind(self.settings.longRewindSeconds))
         self.canvas.bind(EKey9,lambda:self.NextBookPart())
         self.canvas.bind(EKey7,lambda:self.PrevBookPart())
         self.canvas.bind(EKeySelect,lambda:self.PlayPause())
@@ -256,12 +347,22 @@ class Scheherazade:
 
     def LoadBook(self):
         self.currentBook = self.library.GetBookByName(self.settings.currentBook)
+        self.currentBook.Load()
+        if len(self.currentBook.bookParts) == 0:
+	    appuifw.note(u"Book seems to have no playable files in it, please select another book.")
+	    self.SelectBook()
+ 
         self.currentPos = 0
         self.autoBookmark = Bookmark()
         self.autoBookmark.Load(self.currentBook)
         bookPartIndex = 0
-        if self.autoBookmark.BookPartName in self.currentBook.bookParts:
-	    bookPartIndex =  self.currentBook.bookParts.index(self.autoBookmark.BookPartName)
+        if os.path.exists(self.autoBookmark.BookPartName):
+            idx = 0
+            for bookPartName, bookPartDisplay, hash in self.currentBook.bookParts:
+              if self.autoBookmark.BookPartName  == bookPartName:
+                  bookPartIndex =  idx
+                  break
+              idx += 1
         
         self.SetCurrentBookPart(bookPartIndex)
         self.currentPos = self.autoBookmark.Position
@@ -284,6 +385,20 @@ class Scheherazade:
 	    self.currentPos = pos
           self.DrawPosition()	
 	
+    def About(self):
+        fields = [
+                         ( u'Application Name','text', u'Scheherazade' ),
+                         ( u'Company','text', u'PlatySoft Pty Ltd' ),
+                         ( u'Download Terms and conditions','text', u'www.PlatySoft.com.au' ),
+                         ( u'Download Users manual','text', u'www.PlatySoft.com.au' ),
+                         ( u'Download the latest version','text', u'www.PlatySoft.com.au' ),
+                         ( u'Support','text', u'Support@PlatySoft.com.au' )
+                      ]
+        form = appuifw.Form(fields, appuifw.FFormAutoLabelEdit | appuifw.FFormDoubleSpaced)
+        form.execute( )
+        #self.aboutText = appuifw.Text()
+        #appuifw.app.body=self.aboutCanvas
+
     def SelectBook(self):
         index = appuifw.popup_menu([u"%s"%book.bookName for book in self.library.books], u"Select a book:")
         if index >= 0:
@@ -319,7 +434,7 @@ class Scheherazade:
 	    self.DrawBookPartName()
 	    
     def GetCurrentBookPartIndex(self):
-        return self.currentBook.bookParts.index(self.currentBook.currentBookPart)       
+        return self.currentBook.currentBookPartIndex
         
     def PrevBookPart(self):
         currentBookPartIndex = self.GetCurrentBookPartIndex()
@@ -339,7 +454,11 @@ class Scheherazade:
         self.audioPlayer.play(callback=self.endOfPlay)
     
     def SetCurrentBookPart(self, bookPartIndex):
-        self.currentBook.currentBookPart = self.currentBook.bookParts[bookPartIndex]
+        self.currentBook.currentBookPartIndex = bookPartIndex
+        self.currentBook.currentBookPart, displayName, hash = self.currentBook.bookParts[bookPartIndex]
+        if not os.path.exists(self.currentBook.currentBookPart):
+	    appuifw.note(u"book part not found, starting from first part.")
+            self.SetCurrentBookPart(0)
         self.audioPlayer.close()
         self.SetCurrentMediaPosition(0)
         self.audioPlayer = audio.Sound.open(self.currentBook.currentBookPart)
@@ -350,7 +469,7 @@ class Scheherazade:
     def endOfPlay(self, prevStat, newStat, error):
         if error == 0:
           if newStat == audio.EOpen and prevStat == audio.EPlaying:
-            currentBookPartIndex = self.currentBook.bookParts.index(self.currentBook.currentBookPart)
+            currentBookPartIndex = self.currentBook.currentBookPartIndex
             if currentBookPartIndex < len(self.currentBook.bookParts) - 1:        	    
                 self.SetCurrentBookPart(currentBookPartIndex + 1)
 	        self.Play()
@@ -460,21 +579,22 @@ class Scheherazade:
 
     def DrawBookPartName(self): 
         if not self.Loading:
-            bookPartNo = self.currentBook.bookParts.index(self.currentBook.currentBookPart)
             writer = TextWriter(self.canvas)
-            self.canvas.rectangle((5,85,235, 145),fill=(192,192,128))
-            self.canvas.rectangle((5,85,235, 145),width = 1, outline=(96,96,64))
+            self.canvas.rectangle((5,85,235, 145),fill=(200,200,128))
+            #self.canvas.rectangle((5,85,235, 145),width = 1, outline=(96,96,64))
             writer.render("%s"%self.currentBook.bookName, "normal", None, 30, [5,85,235, 145], fill=0x000000)
             self.canvas.rectangle((5,155,235, 200),fill=(192,192,128))
-            writer.render("%s"%self.currentBook.bookPartDisplays[bookPartNo], "normal", None, 30, [5,155,235, 200], fill=0x000000)
+            bookPartFileName, bookPartDisplay, hash = self.currentBook.bookParts[self.currentBook.currentBookPartIndex]
+            writer.render("%s"%bookPartDisplay, "normal", None, 30, [5,155,235, 200], fill=0x000000)
             self.canvas.rectangle((5,205,235, 230),fill=(192,192,128))
             
             if self.currentBookpartDuration > 0:
                 self.canvas.rectangle((5,205,235, 230), fill = None, width = 3, outline=(96,96,64))
-                gPos = int((bookPartNo+1) * (self.screenWidth - 16) / len(self.currentBook.bookPartDisplays))
+                gPos = int((self.currentBook.currentBookPartIndex+1) * (self.screenWidth - 16) / len(self.currentBook.bookParts))
                 self.canvas.rectangle((5 + 3, 205 + 3, 5 + 3 + gPos, 230 - 3), fill = (96,96,64))
         
     def set_exit(self):
+        self.SaveAutoBookmark()
         self.audioPlayer.stop()
         self.exitflag=1
 
@@ -483,6 +603,11 @@ class Scheherazade:
         self.autoBookmark.Position = self.currentPos
         self.autoBookmark.Save(self.currentBook)
         self.lastSavedbookmark = time.time()
+
+    def RedrawAbout(self,rect):
+        self.aboutCanvas.clear(self.fieldcolor)
+        self.aboutCanvas.text((82,55),u"test",(0,0,0), (u'title',None,FONT_BOLD|FONT_ANTIALIAS))
+        
 
     def run(self):
         appuifw.app.exit_key_handler=self.set_exit
@@ -496,4 +621,3 @@ class Scheherazade:
         
 cheherazade=Scheherazade()
 cheherazade.run()
-exit()
