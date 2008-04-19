@@ -162,8 +162,15 @@ class IniReader:
 	        return value
 	return defaulValue
  
- 
- 
+class LogWriter:
+	def __init__(self):
+	  self.logFileName = "c:\\data\\Scheherazade\\Scheherazade.Log"
+	 
+	def Log(self, message):
+	  logFile = open(self.logFileName, 'at')
+	  logFile.write(message + "\n");
+	  logFile.close()
+  
   
 class Settings:
     def __init__(self):
@@ -301,6 +308,7 @@ class Scheherazade:
         self.fieldcolor=(192,192,128)
         self.old_body=appuifw.app.body
         self.settings = Settings()
+        self.logWriter = LogWriter()
         self.Loading = True
         self.canvas=appuifw.Canvas(redraw_callback=self.redraw)
         appuifw.app.body=self.canvas
@@ -400,7 +408,13 @@ class Scheherazade:
         #appuifw.app.body=self.aboutCanvas
 
     def SelectBook(self):
-        index = appuifw.popup_menu([u"%s"%book.bookName for book in self.library.books], u"Select a book:")
+        self.logWriter.Log("Selecting a book")
+        self.logWriter.Log("There are %d books in the library:"%len(self.library.books))
+        for book in self.library.books:
+          self.logWriter.Log("   bookname: %s"%book.bookName)
+        listOfBookNames = [u"%s"%book.bookName for book in self.library.books]
+        self.logWriter.Log("Created List of books")
+        index = appuifw.popup_menu(listOfBookNames, u"Select a book:")
         if index >= 0:
 	    self.settings.currentBook = self.library.books[index].bookName
 	    self.settings.Save()
