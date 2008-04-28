@@ -12,7 +12,8 @@ class SettinsEditForm(object):
                          ( u'Long rewind (4,6)','number', settings.longRewindSeconds ),
                          ( u'Rewind on pause','number', settings.rewindOnPauseSeconds ),
                          ( u'Voice tagging', 'combo', ( self.yesNoOptions, self.BooleanReverse(settings.voiceTaggingEnabled) ) ),
-                         ( u'Voice tag file format', 'combo', ( self.recordingFormatsUnicode, self.recordingFormats.index(settings.voiceTagFileFormat)) )
+                         ( u'Voice tag file format', 'combo', ( self.recordingFormatsUnicode, self.recordingFormats.index(settings.voiceTagFileFormat)) ),
+                         ( u'Rewind on phone call','number', settings.rewindOnCallSeconds)
                       ]
  
     def Show( self ):
@@ -49,5 +50,7 @@ class SettinsEditForm(object):
 
     def GetVoiceTagFileFormat( self ):
         return self.recordingFormats[self.form[5][2][1]]
-
+       
+    def GetRewindOnCallSeconds(self):
+        return self.form[6][2]
     

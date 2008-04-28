@@ -9,6 +9,7 @@ from key_codes import *
 from graphics import *
 import random
 import traceback
+import telephone
 
 #{*Import TextWriter.py*}
 #{*Import MediaFile.py*}
@@ -27,6 +28,8 @@ class Scheherazade:
     def __init__(self):
         self.font = ('normal',None,FONT_BOLD|FONT_ANTIALIAS)
         self.wasPlaying = False
+        self.isPlaying = False
+        self.changingState = False
         self.currentPos = 0
         self.keyboardHandler = KeyboardHandler()
         self.currentBookpartDuration = 0
@@ -83,7 +86,23 @@ class Scheherazade:
         self.isChangingPosition = 0
         self.Loading = False
         self.redraw(None)
+        self.inCall = False
+        telephone.call_state(self.CallStateChanged)
+        
 
+    def CallStateChanged(self, params):
+        if params[0] != telephone.EStatusIdle:
+            if not self.inCall:
+                self.inCall = True
+                self.playInterrupted = self.isPlaying
+                if self.playInterrupted:
+                    self.Stop()
+                    self.Rewind(self.settings.rewindOnCallSeconds)
+        else:
+            self.inCall = False
+            if self.playInterrupted: 
+                self.Play()
+        
     def EndTag(self):
         if self.settings.voiceTaggingEnabled:
             self.recorder.stop()
@@ -91,15 +110,14 @@ class Scheherazade:
     def StartTag(self):
         if self.settings.voiceTaggingEnabled:
             maxFileNumber = 1
-            tagFileNameBase = "ScheherazadeTag"
             tagFileFormat = self.settings.voiceTagFileFormat
             for fileName in os.listdir(self.currentBook.bookPath):
-                if fileName.startswith(tagFileNameBase):
-                    fileNumber = int(fileName[len(tagFileNameBase):-(len(tagFileFormat)+1)])
+                if fileName.startswith(self.settings.tagFileNameBase):
+                    fileNumber = int(fileName[len(self.settings.tagFileNameBase):-(len(tagFileFormat)+1)])
                     if  maxFileNumber <= fileNumber:
                         maxFileNumber = fileNumber + 1
                         
-            self.recorder = audio.Sound.open(os.path.join(self.currentBook.bookPath, "%s%d.%s"%(tagFileNameBase, maxFileNumber, tagFileFormat)))
+            self.recorder = audio.Sound.open(os.path.join(self.currentBook.bookPath, "%s%d.%s"%(self.settings.tagFileNameBase, maxFileNumber, tagFileFormat)))
             self.recorder.record()
         
     def LoadBook(self):
@@ -125,16 +143,20 @@ class Scheherazade:
         self.currentPos = self.autoBookmark.Position
     
     def GetCurrentMediaPosition(self):
-        if self.audioPlayer.state() == audio.EPlaying:
+        if self.isPlaying:
+          while self.audioPlayer.state() != audio.EPlaying:
+              e32.ao_sleep(.001)
           self.currentPos = self.audioPlayer.current_position()
         return self.currentPos
 
     def SetCurrentMediaPosition(self, pos):
-          isPlaying = self.audioPlayer.state() == audio.EPlaying
+          isPlaying = self.isPlaying
           if isPlaying:
+            while self.audioPlayer.state() != audio.EPlaying:
+                e32.ao_sleep(.001)
             if not self.isChangingPosition:
                 self.isChangingPosition = 1
-                self.audioPlayer.stop()
+                self.Stop()
                 self.audioPlayer.set_position(pos)
                 self.Play()
                 self.isChangingPosition = 0
@@ -185,13 +207,13 @@ class Scheherazade:
     def NextBookPart(self):
         currentBookPartIndex = self.GetCurrentBookPartIndex()
         if currentBookPartIndex < len(self.currentBook.bookParts) - 1:
-            isPlaying = self.audioPlayer.state() == audio.EPlaying
-            if isPlaying:
-	        self.audioPlayer.stop()
+            wasPlaying = self.isPlaying
+            if wasPlaying:
+                self.Stop()
 
     	    self.SetCurrentBookPart(currentBookPartIndex + 1)
 
-            if isPlaying:
+            if wasPlaying:
 	        self.Play()
 	    self.DrawBookPartName()
 	    
@@ -201,19 +223,36 @@ class Scheherazade:
     def PrevBookPart(self):
         currentBookPartIndex = self.GetCurrentBookPartIndex()
         if currentBookPartIndex > 0:
-            isPlaying = self.audioPlayer.state() == audio.EPlaying
-            if isPlaying:
-	        self.audioPlayer.stop()
+            wasPlaying = self.isPlaying
+            if wasPlaying:
+                self.Stop()
             
             self.SetCurrentBookPart(currentBookPartIndex - 1)
 
-            if isPlaying:
+            if wasPlaying:
 	        self.Play()
 	    self.DrawBookPartName()
+
+    def Stop(self):
+        if not self.changingState:
+            self.changingState = True
+            self.isPlaying = False
+            self.GetCurrentMediaPosition()
+            self.audioPlayer.stop()
+            while self.audioPlayer.state() != audio.EOpen:
+                e32.ao_sleep(.001)
+            self.changingState = False
     
     def Play(self):
-        self.audioPlayer.set_volume(self.settings.volume)        
-        self.audioPlayer.play(callback=self.endOfPlay)
+        if not self.changingState:
+            self.changingState = True
+            self.isPlaying = True
+            self.audioPlayer.set_volume(self.settings.volume)        
+            self.audioPlayer.set_position(self.currentPos)
+            self.audioPlayer.play(callback=self.endOfPlay)
+            while self.audioPlayer.state() != audio.EPlaying:
+                e32.ao_sleep(.001)
+            self.changingState = False
     
     def SetCurrentBookPart(self, bookPartIndex):
         self.currentBook.currentBookPartIndex = bookPartIndex
@@ -222,8 +261,11 @@ class Scheherazade:
 	    appuifw.note(u"book part not found, starting from first part.")
             self.SetCurrentBookPart(0)
         self.audioPlayer.close()
+        self.isPlaying = False
         self.SetCurrentMediaPosition(0)
         self.audioPlayer = audio.Sound.open(self.currentBook.currentBookPart)
+        while self.audioPlayer.state() != audio.EOpen:
+            e32.ao_sleep(.00)
         self.currentBookpartDuration = self.audioPlayer.duration()
         self.DrawBookPartName()
         
@@ -239,9 +281,8 @@ class Scheherazade:
                 audio.say(u"Congradulations, you finished yet another book.")
         
     def PlayPause(self):
-        if self.audioPlayer.state() == audio.EPlaying:
-          self.GetCurrentMediaPosition()
-          self.audioPlayer.stop()
+        if self.isPlaying:
+          self.Stop()
           self.Rewind(self.settings.rewindOnPauseSeconds)
           self.SaveAutoBookmark()
         else:
@@ -254,22 +295,20 @@ class Scheherazade:
         if pos < 0:
             if self.GetCurrentBookPartIndex() > 0:
                 self.SetCurrentBookPart(self.GetCurrentBookPartIndex()-1)
-            pos = self.currentBookpartDuration + pos
+                pos = self.currentBookpartDuration + pos
             if pos < 0:
                 pos = 0
         self.SetCurrentMediaPosition(pos)
     
     def StartChangeOfPosition(self):
-        self.wasPlaying = self.audioPlayer.state() == audio.EPlaying
+        self.wasPlaying = self.isPlaying
         if self.wasPlaying:
-            self.GetCurrentMediaPosition()
-            self.audioPlayer.stop()
+            self.Stop()
     
     def EndChangeOfPosition(self):
         if self.wasPlaying:
-            pos = self.GetCurrentMediaPosition()
+            self.SetCurrentMediaPosition(self.currentPos)
             self.Play()
-            self.SetCurrentMediaPosition(pos)
         self.SaveAutoBookmark()
 
     def Forward(self, seconds):
@@ -279,12 +318,9 @@ class Scheherazade:
                 pos =  pos - self.currentBookpartDuration
                 self.SetCurrentBookPart(self.GetCurrentBookPartIndex()+1)
             if pos > self.currentBookpartDuration:
-                pos = 0
+                pos = self.currentBookpartDuration - 2000000
         self.SetCurrentMediaPosition(pos)
     
-    def IsPlaying(self):
-        return self.audioPlayer.state() == audio.EPlaying
-
     def close_canvas(self): 
         appuifw.app.body=self.old_body
         self.canvas=None
@@ -360,7 +396,7 @@ class Scheherazade:
         
     def set_exit(self):
         self.SaveAutoBookmark()
-        self.audioPlayer.stop()
+        self.Stop()
         self.exitflag=1
 
     def SaveAutoBookmark(self):

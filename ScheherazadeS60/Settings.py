@@ -5,11 +5,13 @@ class Settings:
           os.makedirs(settingsPath)
         
         self.setingFileName = settingsPath + "\\Scheherazade.settings"
+        self.tagFileNameBase = "ScheherazadeTag"
         self.currentBook = ""
         self.autoBookmarkSaveInterval = 30
         self.volume = 5
 
         self.rewindSeconds = 20
+        self.rewindOnCallSeconds = 30
         self.rewindOnPauseSeconds = 5
         self.longRewindSeconds = 60
         self.libPath = "E:\\AudioBooks"
@@ -27,6 +29,7 @@ class Settings:
         f.write("LongRewindSeconds=%d\n"%self.longRewindSeconds)
         f.write("VoiceTaggingEnabled=%d\n"%self.voiceTaggingEnabled)
         f.write("VoiceTagFileFormat=%s\n"%self.voiceTagFileFormat)
+        f.write("RewindOnCallSeconds=%d\n"%self.rewindOnCallSeconds)
         f.close()
 
     def Load(self):
@@ -45,6 +48,7 @@ class Settings:
             self.longRewindSeconds = int(iniReader.ReadSetting("LongRewindSeconds", self.longRewindSeconds))
             self.voiceTaggingEnabled = int(iniReader.ReadSetting("VoiceTaggingEnabled", self.voiceTaggingEnabled))
             self.voiceTagFileFormat = iniReader.ReadSetting("VoiceTagFileFormat", self.voiceTagFileFormat)
+            self.rewindOnCallSeconds = int(iniReader.ReadSetting("RewindOnCallSeconds", self.rewindOnCallSeconds))
 
             if not os.path.exists(os.path.join(self.libPath, self.currentBook)):
                 self.currentBook = ""
@@ -64,6 +68,8 @@ class Settings:
         self.longRewindSeconds = myForm.GetLongRewindSeconds()
         self.voiceTaggingEnabled = myForm.GetVoiceTaggingEnabled()
         self.voiceTagFileFormat = myForm.GetVoiceTagFileFormat()
+        self.rewindOnCallSeconds = myForm.GetRewindOnCallSeconds()
+        
         #self.autoBookmarkSaveInterval = 30
         self.Save()
         if needRestart:
