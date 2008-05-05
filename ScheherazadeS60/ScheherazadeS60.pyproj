@@ -28,7 +28,36 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Scheherazade.py" />
+    <None Include="Scheherazade.py" />
+    <None Include="TextWriter.py">
+      <SubType>Code</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Book.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Bookmark.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IniReader.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Library.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LogWriter.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="MediaFile.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Settings.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SettinsEditForm.py">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\IronPython Studio\1.0\IronPython.targets" />
 </Project>
