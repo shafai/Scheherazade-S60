@@ -351,7 +351,7 @@ class Scheherazade:
 
     def run(self):
         appuifw.app.exit_key_handler=self.set_exit
-        appuifw.app.title = u"Scheherazade"
+        appuifw.app.title = u"PlatySoft's Scheherazade"
         while not self.exitflag:
             self.DrawPosition()
             e32.ao_sleep(1)
@@ -361,4 +361,3 @@ class Scheherazade:
 
 cheherazade=Scheherazade()
 cheherazade.run()
-exit()
