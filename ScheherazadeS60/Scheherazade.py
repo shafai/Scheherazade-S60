@@ -136,7 +136,7 @@ class Scheherazade:
 
     def SelectBook(self):
        try:
-          listOfBookNames = [u"%s"%book.bookName for book in self.library.books]
+          listOfBookNames = [unicode(book.bookName) for book in self.library.books]
           index = appuifw.popup_menu(listOfBookNames, u"Select a book:")
           if index >= 0:
 	      self.settings.currentBook = self.library.books[index].bookName
@@ -344,10 +344,6 @@ class Scheherazade:
         self.autoBookmark.Save(self.currentBook)
         self.lastSavedbookmark = time.time()
 
-    def RedrawAbout(self,rect):
-        self.aboutCanvas.clear(self.fieldcolor)
-        self.aboutCanvas.text((82,55),u"test",(0,0,0), (u'title',None,FONT_BOLD|FONT_ANTIALIAS))
-        
 
     def run(self):
         appuifw.app.exit_key_handler=self.set_exit

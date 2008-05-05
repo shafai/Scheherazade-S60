@@ -3,7 +3,7 @@ class Bookmark:
         self.BookPartName = ""
         self.Position = 0
     def Save(self, book):
-        fileName = os.path.join(book.bookPath, u"%s.AutoBookmark"%book.bookName)
+        fileName = os.path.join(book.bookPath, unicode(book.bookName + ".AutoBookmark"))
         f = open(fileName, 'wt')
         f.write("CurrentBookPart=%s\n"%book.currentBookPart)
         posToSave = self.Position/1000000
@@ -11,7 +11,7 @@ class Bookmark:
         f.close()
 
     def Load(self, book):
-        fileName = os.path.join(book.bookPath, u"%s.AutoBookmark"%book.bookName)
+        fileName = os.path.join(book.bookPath, unicode(book.bookName + ".AutoBookmark"))
         if os.path.exists(fileName):
             f = open(fileName, 'rt')
             iniReader = IniReader(f.read())
