@@ -39,6 +39,15 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="book.svg" />
+    <None Include="MakeSis.bat" />
+    <None Include="merge.bat" />
+    <None Include="PythonForS60_1_4_2_3rdEd.SIS" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ensymble_python2.5-0.26.py" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
