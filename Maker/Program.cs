@@ -13,6 +13,7 @@ namespace Maker
 		static void Main(string[] args)
 		{
 			string outputFileName = "..\\..\\..\\Scheherazade.py";
+			string deviceTestOutputFileName = "..\\..\\..\\_Scheherazade.py";
 
 			using (StreamReader tr = File.OpenText(Path.Combine(pathToScripts, "Scheherazade.py")))
 			{
@@ -23,6 +24,12 @@ namespace Maker
 
 				File.Delete(outputFileName);
 				using (StreamWriter sw = File.AppendText(outputFileName))
+				{
+					sw.Write(inputFileContent + "\nexit()");
+				}
+
+				File.Delete(deviceTestOutputFileName);
+				using (StreamWriter sw = File.AppendText(deviceTestOutputFileName))
 				{
 					sw.Write(inputFileContent);
 				}
