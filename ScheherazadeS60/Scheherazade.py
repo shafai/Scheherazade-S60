@@ -20,13 +20,35 @@ import traceback
 #{*Import SettinsEditForm.py*}
 #{*Import Bookmark.py*}
 
-                 
+class KeyboardHandler:
+	def __init__(self):
+	    self.lastKeyPressed = 0
+	    self.bindings = []
+	    self.logWriter = LogWriter()
+	    
+	def KeyEventHandler(self, arg):
+	    for (keyCode, pressCallable, keptPressingCallable, releaseCallable) in self.bindings:
+	        if keyCode == arg['scancode']:
+	            if arg['type'] == appuifw.EEventKeyDown:
+	                if pressCallable != None:
+	                    pressCallable()
+	            if arg['type'] == appuifw.EEventKey:
+	                if keptPressingCallable != None:
+	                    keptPressingCallable()
+	            if arg['type'] == appuifw.EEventKeyUp:
+	                if releaseCallable != None:
+	                    releaseCallable()
+	                
+	def Bind(self, keyCode, pressedCallback = None, keptPressedCallback = None, releasedCallback = None):
+	    self.bindings.append((keyCode, pressedCallback, keptPressedCallback, releasedCallback))
+                  
 
 class Scheherazade:
 
     def __init__(self):
         self.font = ('normal',None,FONT_BOLD|FONT_ANTIALIAS)
         self.currentPos = 0
+        self.keyboardHandler = KeyboardHandler()
         self.currentBookpartDuration = 0
         self.audioPlayer = audio.Sound()
         self.screenWidth = 240
@@ -37,7 +59,7 @@ class Scheherazade:
         self.settings = Settings()
         self.logWriter = LogWriter()
         self.Loading = True
-        self.canvas=appuifw.Canvas(redraw_callback=self.redraw)
+        self.canvas=appuifw.Canvas(redraw_callback=self.redraw, event_callback=self.keyboardHandler.KeyEventHandler)
         appuifw.app.body=self.canvas
         self.canvas.clear(self.fieldcolor)
         self.settings.Load()
@@ -67,15 +89,16 @@ class Scheherazade:
         self.LoadBook()
         self.lastSavedbookmark = time.time()
         
-        self.canvas.bind(EKey6,lambda:self.Forward(self.settings.longRewindSeconds))
-        self.canvas.bind(EKey4,lambda:self.Rewind(self.settings.longRewindSeconds))
-        self.canvas.bind(EKey9,lambda:self.NextBookPart())
-        self.canvas.bind(EKey7,lambda:self.PrevBookPart())
-        self.canvas.bind(EKeySelect,lambda:self.PlayPause())
-        self.canvas.bind(EKeyRightArrow,lambda:self.Forward(self.settings.rewindSeconds))
-        self.canvas.bind(EKeyUpArrow,lambda:self.VolUp())
-        self.canvas.bind(EKeyLeftArrow,lambda:self.Rewind(self.settings.rewindSeconds))
-        self.canvas.bind(EKeyDownArrow,lambda:self.VolDown())
+        #self.canvas.bind(EKey6,lambda:self.Forward(self.settings.longRewindSeconds))
+        self.keyboardHandler.Bind(EScancode6,lambda:self.Forward(self.settings.longRewindSeconds))
+        self.keyboardHandler.Bind(EScancode4,lambda:self.Rewind(self.settings.longRewindSeconds))
+        self.keyboardHandler.Bind(EScancode9,lambda:self.NextBookPart())
+        self.keyboardHandler.Bind(EScancode7,lambda:self.PrevBookPart())
+        self.keyboardHandler.Bind(EScancodeSelect, None, None, lambda:self.PlayPause())
+        self.keyboardHandler.Bind(EScancodeRightArrow,lambda:self.Forward(self.settings.rewindSeconds))
+        self.keyboardHandler.Bind(EScancodeUpArrow,lambda:self.VolUp())
+        self.keyboardHandler.Bind(EScancodeLeftArrow,lambda:self.Rewind(self.settings.rewindSeconds))
+        self.keyboardHandler.Bind(EScancodeDownArrow,lambda:self.VolDown())
         self.isChangingPosition = 0
         self.Loading = False
         self.redraw(None)
@@ -343,7 +366,6 @@ class Scheherazade:
         self.autoBookmark.Position = self.currentPos
         self.autoBookmark.Save(self.currentBook)
         self.lastSavedbookmark = time.time()
-
 
     def run(self):
         appuifw.app.exit_key_handler=self.set_exit
