@@ -19,34 +19,14 @@ import traceback
 #{*Import Settings.py*}
 #{*Import SettinsEditForm.py*}
 #{*Import Bookmark.py*}
+#{*Import KeyboardHandler.py*}
 
-class KeyboardHandler:
-	def __init__(self):
-	    self.lastKeyPressed = 0
-	    self.bindings = []
-	    self.logWriter = LogWriter()
-	    
-	def KeyEventHandler(self, arg):
-	    for (keyCode, pressCallable, keptPressingCallable, releaseCallable) in self.bindings:
-	        if keyCode == arg['scancode']:
-	            if arg['type'] == appuifw.EEventKeyDown:
-	                if pressCallable != None:
-	                    pressCallable()
-	            if arg['type'] == appuifw.EEventKey:
-	                if keptPressingCallable != None:
-	                    keptPressingCallable()
-	            if arg['type'] == appuifw.EEventKeyUp:
-	                if releaseCallable != None:
-	                    releaseCallable()
-	                
-	def Bind(self, keyCode, pressedCallback = None, keptPressedCallback = None, releasedCallback = None):
-	    self.bindings.append((keyCode, pressedCallback, keptPressedCallback, releasedCallback))
-                  
 
 class Scheherazade:
 
     def __init__(self):
         self.font = ('normal',None,FONT_BOLD|FONT_ANTIALIAS)
+        self.wasPlaying = False
         self.currentPos = 0
         self.keyboardHandler = KeyboardHandler()
         self.currentBookpartDuration = 0
@@ -82,23 +62,21 @@ class Scheherazade:
         appuifw.app.menu = [
                             (u'Select book', self.SelectBook), 
                             (u'Settings', self.settings.ShowOptionsForm),
-#                            (u'-', None),
                             (u'About', self.About)
                             ]
         
         self.LoadBook()
         self.lastSavedbookmark = time.time()
         
-        #self.canvas.bind(EKey6,lambda:self.Forward(self.settings.longRewindSeconds))
-        self.keyboardHandler.Bind(EScancode6,lambda:self.Forward(self.settings.longRewindSeconds))
-        self.keyboardHandler.Bind(EScancode4,lambda:self.Rewind(self.settings.longRewindSeconds))
-        self.keyboardHandler.Bind(EScancode9,lambda:self.NextBookPart())
-        self.keyboardHandler.Bind(EScancode7,lambda:self.PrevBookPart())
-        self.keyboardHandler.Bind(EScancodeSelect, None, None, lambda:self.PlayPause())
-        self.keyboardHandler.Bind(EScancodeRightArrow,lambda:self.Forward(self.settings.rewindSeconds))
-        self.keyboardHandler.Bind(EScancodeUpArrow,lambda:self.VolUp())
-        self.keyboardHandler.Bind(EScancodeLeftArrow,lambda:self.Rewind(self.settings.rewindSeconds))
-        self.keyboardHandler.Bind(EScancodeDownArrow,lambda:self.VolDown())
+        self.keyboardHandler.Bind(EScancode6, lambda:self.StartChangeOfPosition() , lambda:self.Forward(self.settings.longRewindSeconds), lambda:self.EndChangeOfPosition())
+        self.keyboardHandler.Bind(EScancode4, lambda:self.StartChangeOfPosition() , lambda:self.Rewind(self.settings.longRewindSeconds), lambda:self.EndChangeOfPosition())
+        self.keyboardHandler.Bind(EScancode9, lambda:self.NextBookPart())
+        self.keyboardHandler.Bind(EScancode7, lambda:self.PrevBookPart())
+        self.keyboardHandler.Bind(EScancodeSelect, lambda:self.PlayPause())
+        self.keyboardHandler.Bind(EScancodeRightArrow, lambda:self.StartChangeOfPosition(), lambda:self.Forward(self.settings.rewindSeconds), lambda:self.EndChangeOfPosition())
+        self.keyboardHandler.Bind(EScancodeUpArrow, None, lambda:self.VolUp())
+        self.keyboardHandler.Bind(EScancodeLeftArrow, lambda:self.StartChangeOfPosition() , lambda:self.Rewind(self.settings.rewindSeconds), lambda:self.EndChangeOfPosition())
+        self.keyboardHandler.Bind(EScancodeDownArrow, None, lambda:self.VolDown())
         self.isChangingPosition = 0
         self.Loading = False
         self.redraw(None)
@@ -251,37 +229,40 @@ class Scheherazade:
         
         
     def Rewind(self, seconds):
-          pos = self.GetCurrentMediaPosition() - (seconds * 1000000)
-          if pos < 0:
+        pos = self.GetCurrentMediaPosition() - (seconds * 1000000)
+        if pos < 0:
             if self.GetCurrentBookPartIndex() > 0:
-                isPlaying = self.audioPlayer.state() == audio.EPlaying
-	        self.SetCurrentBookPart(self.GetCurrentBookPartIndex()-1)
-	        pos = self.currentBookpartDuration + pos
-	        if pos < 0:
-	            pos = 0
-	        if isPlaying:
-	            self.Play()
-                self.SetCurrentMediaPosition(pos)     
-            else:
-	        pos = 0
-                self.SetCurrentMediaPosition(pos)
-          else:
+                self.SetCurrentBookPart(self.GetCurrentBookPartIndex()-1)
+            pos = self.currentBookpartDuration + pos
+            if pos < 0:
+                pos = 0
+        self.SetCurrentMediaPosition(pos)
+    
+    def StartChangeOfPosition(self):
+        self.wasPlaying = self.audioPlayer.state() == audio.EPlaying
+        if self.wasPlaying:
+            self.GetCurrentMediaPosition()
+            self.audioPlayer.stop()
+    
+    def EndChangeOfPosition(self):
+        if self.wasPlaying:
+            pos = self.GetCurrentMediaPosition()
+            self.Play()
             self.SetCurrentMediaPosition(pos)
+        self.SaveAutoBookmark()
 
     def Forward(self, seconds):
-          pos = self.GetCurrentMediaPosition() + (seconds * 1000000)
-          if pos>self.currentBookpartDuration:
-	    if self.GetCurrentBookPartIndex() < len(self.currentBook.bookParts) - 1:
-                isPlaying = self.audioPlayer.state() == audio.EPlaying
-	        pos =  pos - self.currentBookpartDuration
-	        self.SetCurrentBookPart(self.GetCurrentBookPartIndex()+1)
-	        if pos>self.currentBookpartDuration:
-	            pos = 0
-	        if isPlaying:
-	            self.Play()
-                self.SetCurrentMediaPosition(pos)     
-          else:          
-            self.SetCurrentMediaPosition(pos)
+        pos = self.GetCurrentMediaPosition() + (seconds * 1000000)
+        if pos > self.currentBookpartDuration:
+            if self.GetCurrentBookPartIndex() < len(self.currentBook.bookParts) - 1:
+                pos =  pos - self.currentBookpartDuration
+                self.SetCurrentBookPart(self.GetCurrentBookPartIndex()+1)
+            if pos > self.currentBookpartDuration:
+                pos = 0
+        self.SetCurrentMediaPosition(pos)
+    
+    def IsPlaying(self):
+        return self.audioPlayer.state() == audio.EPlaying
 
     def close_canvas(self): 
         appuifw.app.body=self.old_body

@@ -43,6 +43,9 @@
     <Compile Include="IniReader.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="KeyboardHandler.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="Library.py">
       <SubType>Code</SubType>
     </Compile>
