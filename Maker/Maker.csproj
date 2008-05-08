@@ -47,6 +47,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="ensymble_python2.5-0.26.py" />
+    <Content Include="text.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

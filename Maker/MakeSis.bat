@@ -1,1 +1,1 @@
-python ensymble_python2.5-0.26.py py2sis --appname=Scheherazade --version=1.0.0 --icon=book.svg --shortcaption="Scheherazade" --caption="Scheherazade" --vendor="PlatySoft Pty Ltd" --verbose ..\Scheherazade.py ..\PlatySoftScheherazade.sis
+python ensymble_python2.5-0.26.py py2sis --appname=Scheherazade --version=1.0.0 --icon=book.svg --textfile=text.txt --shortcaption="Scheherazade" --caption="Scheherazade" --vendor="PlatySoft Pty Ltd" --verbose ..\Scheherazade.py ..\PlatySoftScheherazade.sis
