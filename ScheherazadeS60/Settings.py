@@ -13,6 +13,8 @@ class Settings:
         self.rewindOnPauseSeconds = 5
         self.longRewindSeconds = 60
         self.libPath = "E:\\AudioBooks"
+        self.voiceTaggingEnabled = 0
+        self.voiceTagFileFormat = "AMR"
     
     def Save(self):
         f = open(self.setingFileName, 'wt')
@@ -23,6 +25,8 @@ class Settings:
         f.write("RewindSeconds=%d\n"%self.rewindSeconds)
         f.write("RewindOnPauseSeconds=%d\n"%self.rewindOnPauseSeconds)
         f.write("LongRewindSeconds=%d\n"%self.longRewindSeconds)
+        f.write("VoiceTaggingEnabled=%d\n"%self.voiceTaggingEnabled)
+        f.write("VoiceTagFileFormat=%s\n"%self.voiceTagFileFormat)
         f.close()
 
     def Load(self):
@@ -39,6 +43,8 @@ class Settings:
             self.rewindSeconds = int(iniReader.ReadSetting("RewindSeconds", self.rewindSeconds))
             self.rewindOnPauseSeconds = int(iniReader.ReadSetting("RewindOnPauseSeconds", self.rewindOnPauseSeconds))
             self.longRewindSeconds = int(iniReader.ReadSetting("LongRewindSeconds", self.longRewindSeconds))
+            self.voiceTaggingEnabled = int(iniReader.ReadSetting("VoiceTaggingEnabled", self.voiceTaggingEnabled))
+            self.voiceTagFileFormat = iniReader.ReadSetting("VoiceTagFileFormat", self.voiceTagFileFormat)
 
             if not os.path.exists(os.path.join(self.libPath, self.currentBook)):
                 self.currentBook = ""
@@ -56,6 +62,8 @@ class Settings:
         self.rewindSeconds = myForm.GetRewindSeconds()
         self.rewindOnPauseSeconds = myForm.GetRewindOnPauseSeconds()
         self.longRewindSeconds = myForm.GetLongRewindSeconds()
+        self.voiceTaggingEnabled = myForm.GetVoiceTaggingEnabled()
+        self.voiceTagFileFormat = myForm.GetVoiceTagFileFormat()
         #self.autoBookmarkSaveInterval = 30
         self.Save()
         if needRestart:

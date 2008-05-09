@@ -1,16 +1,3 @@
-import os
-import re
-import time
-import audio
-import appuifw
-import math
-import e32
-from key_codes import *
-from graphics import *
-import random
-import traceback
-import sys
-
 class TextWriter:    
     def __init__(self, canvas):
         self.canvas = canvas

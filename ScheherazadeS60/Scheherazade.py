@@ -77,10 +77,31 @@ class Scheherazade:
         self.keyboardHandler.Bind(EScancodeUpArrow, None, lambda:self.VolUp())
         self.keyboardHandler.Bind(EScancodeLeftArrow, lambda:self.StartChangeOfPosition() , lambda:self.Rewind(self.settings.rewindSeconds), lambda:self.EndChangeOfPosition())
         self.keyboardHandler.Bind(EScancodeDownArrow, None, lambda:self.VolDown())
+
+        self.keyboardHandler.Bind(EScancode5, lambda:self.StartTag(), None, lambda:self.EndTag())
+
         self.isChangingPosition = 0
         self.Loading = False
         self.redraw(None)
 
+    def EndTag(self):
+        if self.settings.voiceTaggingEnabled:
+            self.recorder.stop()
+
+    def StartTag(self):
+        if self.settings.voiceTaggingEnabled:
+            maxFileNumber = 1
+            tagFileNameBase = "ScheherazadeTag"
+            tagFileFormat = self.settings.voiceTagFileFormat
+            for fileName in os.listdir(self.currentBook.bookPath):
+                if fileName.startswith(tagFileNameBase):
+                    fileNumber = int(fileName[len(tagFileNameBase):-(len(tagFileFormat)+1)])
+                    if  maxFileNumber <= fileNumber:
+                        maxFileNumber = fileNumber + 1
+                        
+            self.recorder = audio.Sound.open(os.path.join(self.currentBook.bookPath, "%s%d.%s"%(tagFileNameBase, maxFileNumber, tagFileFormat)))
+            self.recorder.record()
+        
     def LoadBook(self):
         self.currentBook = self.library.GetBookByName(self.settings.currentBook)
         self.currentBook.Load()
